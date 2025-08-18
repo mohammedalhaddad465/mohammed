@@ -9,6 +9,7 @@ from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
+    ConversationHandler,
     MessageHandler,
     filters,
     ContextTypes,
@@ -27,21 +28,11 @@ from .keyboards import (
     BACK_TO_LEVELS,
     BACK_TO_SUBJECTS,
 )
+# --- Conversation states ---
+from .conversation import ALL_STATES, get_state, LEVEL
+from .helpers import nav_go_levels_list
 # --- Handlers ---
 from .handlers import (
-    render_level,
-    render_term_list,
-    render_term,
-    render_subject,
-    render_subject_list,
-    render_section,
-    render_year,
-    render_lecturer,
-    render_year_list,
-    render_lecturer_list,
-    render_lecture_list,
-    render_year_category_menu,
-    render_lecture_category_menu,
     handle_back_to_levels,
     handle_back_to_subjects,
     handle_levels_menu,
@@ -69,9 +60,13 @@ logging.basicConfig(
 )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """نقطة الدخول لبدء المحادثة."""
+    nav_go_levels_list(context.user_data)
     await update.message.reply_text(
         "👋 مرحبًا بك في بوت أرشيف قسم الميكاترونكس.\nاختر من القائمة:",
-        reply_markup=main_menu)
+        reply_markup=main_menu,
+    )
+    return LEVEL
 
 
 
@@ -80,38 +75,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # --------------------------------------------------------------------------
-STATE_RENDERERS = {
-    "level": render_level,
-    "term_list": render_term_list,
-    "term": render_term,
-    "subject": render_subject,
-    "subject_list": render_subject_list,
-    "section": render_section,
-    "year": render_year,
-    "lecturer": render_lecturer,
-    "year_list": render_year_list,
-    "lecturer_list": render_lecturer_list,
-    "lecture_list": render_lecture_list,
-    "year_category_menu": render_year_category_menu,
-    "lecture_category_menu": render_lecture_category_menu,
-}
-
-async def render_state(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    nav = context.user_data.get("nav", {"stack": []})
-    stack = nav.get("stack", [])
-
-    if not stack:
-        return await update.message.reply_text("اختر من القائمة:", reply_markup=main_menu)
-
-    top_type = stack[-1][0]
-    handler = STATE_RENDERERS.get(top_type)
-    if handler:
-        return await handler(update, context)
-
-    return await update.message.reply_text("اختر من القائمة:", reply_markup=main_menu)
-
-# --------------------------------------------------------------------------
-async def echo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """معالج الرسائل الأساسي ضمن ConversationHandler."""
     text = update.message.text if update.message else ""
 
     handler = {
@@ -123,7 +88,8 @@ async def echo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }.get(text)
 
     if handler:
-        return await handler(update, context)
+        await handler(update, context)
+        return get_state(context.user_data)
 
     dynamic_handlers = [
         handle_choose_level,
@@ -142,12 +108,14 @@ async def echo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for func in dynamic_handlers:
         result = await func(update, context, text)
         if result:
-            return result
+            return get_state(context.user_data)
 
     if text.startswith("/"):
-        return await update.message.reply_text("هذا أمر خاص. لم يتم تفعيله بعد.")
+        await update.message.reply_text("هذا أمر خاص. لم يتم تفعيله بعد.")
+    else:
+        await update.message.reply_text("الخيار غير معروف. ابدأ بـ: 📚 المستويات")
 
-    return await update.message.reply_text("الخيار غير معروف. ابدأ بـ: 📚 المستويات")
+    return get_state(context.user_data)
 
 
 
@@ -177,8 +145,12 @@ def main():
     loop.run_until_complete(init_db())
 
     app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo_handler))
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("start", start)],
+        states={state: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)] for state in ALL_STATES},
+        fallbacks=[],
+    )
+    app.add_handler(conv_handler)
    
     print("✅ Bot is running...")
     app.run_polling()
