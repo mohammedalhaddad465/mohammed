@@ -26,7 +26,7 @@ async def handle_lecture_category_choice(update, context, text):
     if not mats:
         cats = await db.list_categories_for_lecture(subject_id, section_code, lecture_title, year_id=year_id, lecturer_id=lecturer_id)
         return await update.message.reply_text("لا توجد ملفات لهذا النوع.", reply_markup=generate_lecture_category_menu_keyboard(cats))
-    for _id, title, url in mats:
-        await update.message.reply_text(f"📄 {title}\n{url or '(لا يوجد رابط)'}")
+    for mat in mats:
+        await update.message.reply_text(f"📄 {mat.title}\n{mat.url or '(لا يوجد رابط)'}")
     cats = await db.list_categories_for_lecture(subject_id, section_code, lecture_title, year_id=year_id, lecturer_id=lecturer_id)
     return await update.message.reply_text("اختر نوعًا آخر:", reply_markup=generate_lecture_category_menu_keyboard(cats))

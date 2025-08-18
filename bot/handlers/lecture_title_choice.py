@@ -25,8 +25,8 @@ async def handle_lecture_title_choice(update, context, text):
     if not cats:
         mats = await db.get_lecture_materials(subject_id, section_code, year_id=year_id, lecturer_id=lecturer_id, title=text)
         if mats:
-            for _id, title, url in mats:
-                await update.message.reply_text(f"📄 {title}\n{url or '(لا يوجد رابط)'}")
+            for mat in mats:
+                await update.message.reply_text(f"📄 {mat.title}\n{mat.url or '(لا يوجد رابط)'}")
             titles = await db.list_lecture_titles(subject_id, section_code)
             if year_id and lecturer_id:
                 titles = await db.list_lecture_titles_by_lecturer_year(subject_id, section_code, lecturer_id, year_id)
