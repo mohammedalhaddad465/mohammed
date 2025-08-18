@@ -2,7 +2,7 @@
 # enterst.py ملف لإدخال ملفات تجريبية للبوت 
 import asyncio
 import aiosqlite
-from db import (
+from bot.db import (
     DB_PATH,
     insert_level, insert_term, insert_subject,
     get_level_id_by_name, get_term_id_by_name, get_subject_id_by_name,
