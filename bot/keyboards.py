@@ -4,6 +4,7 @@
 
 from telegram import ReplyKeyboardMarkup
 from .config import ADMIN_USER_IDS
+from .models import Subject, Lecturer
 # -----------------------------------------------------------------------------
 # ثوابت نصوص الأزرار (يجب أن تبقى متطابقة مع ما يستخدمه bot.py)
 # -----------------------------------------------------------------------------
@@ -119,12 +120,12 @@ def generate_terms_keyboard(terms: list) -> ReplyKeyboardMarkup:
         input_field_placeholder="إختر الفصل الدراسي  ⬇️",
     )
 
-def generate_subjects_keyboard(subjects: list) -> ReplyKeyboardMarkup:
+def generate_subjects_keyboard(subjects: list[Subject]) -> ReplyKeyboardMarkup:
     """
     يعرض قائمة مواد الترم الحالي.
-    subjects: [(name,), ...]
+    subjects: [Subject, ...]
     """
-    names = [name for (name,) in subjects]
+    names = [s.name for s in subjects]
     keyboard = _rows(names, cols=2)
     keyboard.append([BACK])
     keyboard.append([BACK_TO_LEVELS])  # الرجوع مباشرة للمستويات من هنا مفيد
@@ -198,12 +199,12 @@ def generate_years_keyboard(years: list[tuple[int, str]]) -> ReplyKeyboardMarkup
     keyboard.append([BACK_TO_LEVELS])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
-def generate_lecturers_keyboard(lecturers: list[tuple[int, str]]) -> ReplyKeyboardMarkup:
+def generate_lecturers_keyboard(lecturers: list[Lecturer]) -> ReplyKeyboardMarkup:
     """
     يعرض المحاضرين المرتبطين بالقسم/المادة.
-    lecturers: [(id, name), ...] — نعرض الاسم كزر.
+    lecturers: [Lecturer, ...] — نعرض الاسم كزر.
     """
-    names = [name for _id, name in lecturers]
+    names = [lec.name for lec in lecturers]
     keyboard = _rows(names, cols=2)
     keyboard.append([BACK, BACK_TO_SUBJECTS])
     keyboard.append([BACK_TO_LEVELS])

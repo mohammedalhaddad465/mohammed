@@ -7,6 +7,8 @@ from typing import Any
 
 import aiosqlite
 
+from ..models import Subject, Lecturer, Material
+
 
 DB_PATH = "database/archive.db"
 
@@ -176,15 +178,16 @@ class Database:
         )
         return await cur.fetchall()
 
-    async def get_subjects_by_level_and_term(self, level_id: int, term_id: int):
-        """Return subject names for a given level and term."""
+    async def get_subjects_by_level_and_term(self, level_id: int, term_id: int) -> list[Subject]:
+        """Return :class:`Subject` objects for a given level and term."""
 
         db = await self.connect()
         cur = await db.execute(
-            "SELECT name FROM subjects WHERE level_id = ? AND term_id = ? ORDER BY id",
+            "SELECT id, name FROM subjects WHERE level_id = ? AND term_id = ? ORDER BY id",
             (level_id, term_id),
         )
-        return await cur.fetchall()
+        rows = await cur.fetchall()
+        return [Subject(id=row[0], name=row[1]) for row in rows]
 
     async def get_subject_id_by_name(self, level_id: int, term_id: int, subject_name: str) -> int | None:
         db = await self.connect()
@@ -240,7 +243,7 @@ class Database:
         )
         return await cur.fetchall()
 
-    async def get_lecturers_for_subject_section(self, subject_id: int, section: str):
+    async def get_lecturers_for_subject_section(self, subject_id: int, section: str) -> list[Lecturer]:
         db = await self.connect()
         cur = await db.execute(
             """
@@ -252,7 +255,8 @@ class Database:
             """,
             (subject_id, section),
         )
-        return await cur.fetchall()
+        rows = await cur.fetchall()
+        return [Lecturer(id=row[0], name=row[1]) for row in rows]
 
     async def has_lecture_category(self, subject_id: int, section: str) -> bool:
         db = await self.connect()
@@ -340,7 +344,7 @@ class Database:
         year_id: int | None = None,
         lecturer_id: int | None = None,
         title: str | None = None,
-    ):
+    ) -> list[Material]:
         q = """
         SELECT id, category, title, url, year_id, lecturer_id
         FROM materials
@@ -360,7 +364,20 @@ class Database:
 
         db = await self.connect()
         cur = await db.execute(q, tuple(params))
-        return await cur.fetchall()
+        rows = await cur.fetchall()
+        return [
+            Material(
+                id=row[0],
+                subject_id=subject_id,
+                section=section,
+                category=row[1],
+                title=row[2],
+                url=row[3],
+                year_id=row[4],
+                lecturer_id=row[5],
+            )
+            for row in rows
+        ]
 
     async def get_materials_by_category(
         self,
@@ -371,7 +388,7 @@ class Database:
         year_id: int | None = None,
         lecturer_id: int | None = None,
         title: str | None = None,
-    ):
+    ) -> list[Material]:
         q = """
         SELECT id, title, url
         FROM materials
@@ -391,7 +408,20 @@ class Database:
 
         db = await self.connect()
         cur = await db.execute(q, tuple(params))
-        return await cur.fetchall()
+        rows = await cur.fetchall()
+        return [
+            Material(
+                id=row[0],
+                subject_id=subject_id,
+                section=section,
+                category=category,
+                title=row[1],
+                url=row[2],
+                year_id=year_id,
+                lecturer_id=lecturer_id,
+            )
+            for row in rows
+        ]
 
     async def list_categories_for_subject_section_year(
         self,

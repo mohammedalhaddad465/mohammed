@@ -50,8 +50,8 @@ async def handle_year_category_menu_actions(update, context, text):
                 titles_exist = bool(await db.list_lecture_titles_by_year(subject_id, section_code, year_id))
             cats = await db.list_categories_for_subject_section_year(subject_id, section_code, year_id, lecturer_id=lecturer_id)
             return await update.message.reply_text("لا توجد ملفات لهذا التصنيف.", reply_markup=generate_year_category_menu_keyboard(cats, titles_exist))
-        for _id, title, url in mats:
-            await update.message.reply_text(f"📄 {title}\n{url or '(لا يوجد رابط)'}")
+        for mat in mats:
+            await update.message.reply_text(f"📄 {mat.title}\n{mat.url or '(لا يوجد رابط)'}")
         titles_exist = False
         if lecturer_id and year_id:
             titles_exist = bool(await db.list_lecture_titles_by_lecturer_year(subject_id, section_code, lecturer_id, year_id))

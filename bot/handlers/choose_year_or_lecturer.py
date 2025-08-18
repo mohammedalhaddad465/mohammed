@@ -45,7 +45,7 @@ async def handle_choose_year_or_lecturer(update, context, text):
             )
 
     lecturers = await db.get_lecturers_for_subject_section(subject_id, section_code)
-    lect_map = {name: _id for _id, name in lecturers}
+    lect_map = {lec.name: lec.id for lec in lecturers}
     if text in lect_map:
         lecturer_id = lect_map[text]
         nav_set_lecturer(context.user_data, text, lecturer_id)

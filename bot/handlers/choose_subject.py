@@ -7,7 +7,7 @@ async def handle_choose_subject(update, context, text):
         return None
     db = get_db(context)
     subjects = await db.get_subjects_by_level_and_term(level_id, term_id)
-    subject_names = {name for (name,) in subjects}
+    subject_names = {s.name for s in subjects}
     if text in subject_names:
         subject_id = await db.get_subject_id_by_name(level_id, term_id, text)
         if subject_id is None:
