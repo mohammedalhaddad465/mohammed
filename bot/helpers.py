@@ -7,6 +7,12 @@
 
 NAV_KEY = "nav"
 
+
+def get_db(context):
+    """Retrieve the shared :class:`Database` instance from bot_data."""
+
+    return context.application.bot_data["db"]
+
 # ---------------------------------------------------------------------------
 # أدوات داخلية
 # ---------------------------------------------------------------------------

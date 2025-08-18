@@ -17,8 +17,8 @@ from telegram.ext import (
 
 from .config import BOT_TOKEN
 
-# --- DB: استيراد صريح للدوال المستخدمة فقط ---
-from .db import init_db
+# --- Database ---
+from .db import Database
 
 # from reaction import handle_reaction
 
@@ -126,34 +126,31 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # --------------------------------------------------------------------------
-def main():
-    # سياسة loop مناسبة لويندوز
+async def main() -> None:
+    """Entry point for running the bot."""
+
     if os.name == "nt":
         try:
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         except Exception:
             pass
 
-    # تأكد من وجود event loop للـ MainThread (مهم لبايثون 3.12)
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    async with Database() as db:
+        await db.init_db()
 
-    # تهيئة قاعدة البيانات
-    loop.run_until_complete(init_db())
+        app = ApplicationBuilder().token(BOT_TOKEN).build()
+        # Make the database instance available to all handlers via context
+        app.bot_data["db"] = db
 
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
-        states={state: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)] for state in ALL_STATES},
-        fallbacks=[],
-    )
-    app.add_handler(conv_handler)
-   
-    print("✅ Bot is running...")
-    app.run_polling()
+        conv_handler = ConversationHandler(
+            entry_points=[CommandHandler("start", start)],
+            states={state: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)] for state in ALL_STATES},
+            fallbacks=[],
+        )
+        app.add_handler(conv_handler)
+
+        print("✅ Bot is running...")
+        await app.run_polling()
 
 
 
@@ -179,8 +176,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
-        
+        asyncio.run(main())
     except KeyboardInterrupt:
         print("\nBot stopped by user")
 
