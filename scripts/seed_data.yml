@@ -1,0 +1,53 @@
+structure:
+  levels:
+    - name: "المستوى الأول"
+      terms:
+        - name: "الترم الأول"
+          subjects:
+            - code: "B0303101"
+              name: "لغة عربية (1)"
+            - code: "B0303103"
+              name: "لغة إنجليزية (1)"
+        - name: "الترم الثاني"
+          subjects:
+            - code: "B0303102"
+              name: "لغة عربية (2)"
+            - code: "B0303104"
+              name: "لغة إنجليزية (2)"
+    - name: "المستوى الثاني"
+      terms:
+        - name: "الترم الأول"
+          subjects:
+            - code: "B0303213"
+              name: "جبر خطي ومعادلات تفاضلية"
+        - name: "الترم الثاني"
+          subjects:
+            - code: "B0303214"
+              name: "الاحتمالات والإحصاء"
+years:
+  y_1445: "1445"
+  y_1446: "1446"
+lecturers:
+  lec_abdu:
+    name: "د. عبده محمد"
+    role: "lecturer"
+  ta_arwa:
+    name: "أ. أروى الهندي"
+    role: "ta"
+materials:
+  - level: "المستوى الأول"
+    term: "الترم الأول"
+    subject: "دوائر كهربائية (1)"
+    items:
+      - section: "theory"
+        kind: "lecture"
+        title: "محاضرة 1: أساسيات التيار والجهد"
+        url: "https://example.com/circuits1/lec1.pdf"
+        year: "y_1446"
+        person: "lec_abdu"
+      - section: "discussion"
+        kind: "notes"
+        title: "مناقشة: مسائل 1 (1446)"
+        url: null
+        year: "y_1446"
+        person: "ta_arwa"
