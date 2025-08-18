@@ -1,8 +1,4 @@
-from ..helpers import nav_push_view
-from ..db import (
-    get_years_for_subject_section_lecturer,
-    list_lecture_titles_by_lecturer,
-)
+from ..helpers import nav_push_view, get_db
 from ..keyboards import (
     generate_years_keyboard,
     generate_lecturer_filter_keyboard,
@@ -15,6 +11,7 @@ from ..keyboards import (
 async def handle_lecturer_list_actions(update, context, text):
     if text not in {CHOOSE_YEAR_FOR_LECTURER, LIST_LECTURES_FOR_LECTURER}:
         return None
+    db = get_db(context)
     nav = context.user_data.get("nav", {})
     subject_id = nav.get("data", {}).get("subject_id")
     section_code = nav.get("data", {}).get("section")
@@ -23,10 +20,10 @@ async def handle_lecturer_list_actions(update, context, text):
     if not (subject_id and section_code and lecturer_id):
         return await update.message.reply_text("ابدأ باختيار المادة → القسم → المحاضر.", reply_markup=main_menu)
     if text == CHOOSE_YEAR_FOR_LECTURER:
-        years = await get_years_for_subject_section_lecturer(subject_id, section_code, lecturer_id)
+        years = await db.get_years_for_subject_section_lecturer(subject_id, section_code, lecturer_id)
         if not years:
             years_exist = False
-            lectures_exist = await list_lecture_titles_by_lecturer(subject_id, section_code, lecturer_id)
+            lectures_exist = await db.list_lecture_titles_by_lecturer(subject_id, section_code, lecturer_id)
             return await update.message.reply_text(
                 "لا توجد سنوات مرتبطة بمحاضرات هذا المحاضر.",
                 reply_markup=generate_lecturer_filter_keyboard(years_exist, bool(lectures_exist)),
@@ -37,9 +34,9 @@ async def handle_lecturer_list_actions(update, context, text):
             reply_markup=generate_years_keyboard(years),
         )
     if text == LIST_LECTURES_FOR_LECTURER:
-        titles = await list_lecture_titles_by_lecturer(subject_id, section_code, lecturer_id)
+        titles = await db.list_lecture_titles_by_lecturer(subject_id, section_code, lecturer_id)
         if not titles:
-            years = await get_years_for_subject_section_lecturer(subject_id, section_code, lecturer_id)
+            years = await db.get_years_for_subject_section_lecturer(subject_id, section_code, lecturer_id)
             return await update.message.reply_text(
                 "لا توجد محاضرات لهذا المحاضر.",
                 reply_markup=generate_lecturer_filter_keyboard(bool(years), False),
