@@ -14,10 +14,10 @@ from telegram.ext import (
     ContextTypes,
 )
 
-from config import BOT_TOKEN
+from .config import BOT_TOKEN
 
 # --- DB: استيراد صريح للدوال المستخدمة فقط ---
-from db import (
+from .db import (
     init_db,
     get_levels,
     get_terms_by_level,
@@ -42,7 +42,7 @@ from db import (
 # from reaction import handle_reaction
 
 # --- Keyboards (Reply) ---
-from keyboards import (
+from .keyboards import (
     main_menu,
     generate_levels_keyboard,
     generate_terms_keyboard,
@@ -73,7 +73,7 @@ from keyboards import (
 )
 
 # --- Nav helpers ---
-from helpers import (
+from .helpers import (
     nav_set_subject,
     nav_set_section,
     nav_back_one,
