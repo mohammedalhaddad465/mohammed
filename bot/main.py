@@ -13,6 +13,7 @@ from telegram.ext import (
     MessageHandler,
     filters,
     ContextTypes,
+    idle,
 )
 
 from .config import BOT_TOKEN
@@ -150,7 +151,10 @@ async def main() -> None:
         app.add_handler(conv_handler)
 
         print("✅ Bot is running...")
-        await app.run_polling()
+        async with app:
+            await app.start()
+            await app.updater.start_polling()
+            await idle()
 
 
 
