@@ -13,32 +13,22 @@ _db = Database()
 
 # ---------------- Helper utilities ----------------
 
-ALLOWED_TABLES = {"levels", "terms"}
-
-async def _get_id_by_name(table: str, name: str) -> int | None:
-    if table not in ALLOWED_TABLES:
-        raise ValueError("Invalid table name")
-    conn = await _db.connect()
-    cur = await conn.execute(f"SELECT id FROM {table} WHERE name = ?", (name,))
-    row = await cur.fetchone()
-    return row[0] if row else None
-
 async def ensure_level_id(name: str) -> int:
-    _id = await _get_id_by_name("levels", name)
+    _id = await _db.get_level_id_by_name(name)
     if _id is not None:
         return _id
     await _db.insert_level(name)
-    _id = await _get_id_by_name("levels", name)
+    _id = await _db.get_level_id_by_name(name)
     if _id is None:
         raise RuntimeError(f"Failed to create level: {name}")
     return _id
 
 async def ensure_term_id(name: str) -> int:
-    _id = await _get_id_by_name("terms", name)
+    _id = await _db.get_term_id_by_name(name)
     if _id is not None:
         return _id
     await _db.insert_term(name)
-    _id = await _get_id_by_name("terms", name)
+    _id = await _db.get_term_id_by_name(name)
     if _id is None:
         raise RuntimeError(f"Failed to create term: {name}")
     return _id
