@@ -27,7 +27,7 @@ async def ensure_level_id(name: str) -> int:
     _id = await _get_id_by_name("levels", name)
     if _id is not None:
         return _id
-    await _db.db.insert_level(name)
+    await _db.insert_level(name)
     _id = await _get_id_by_name("levels", name)
     if _id is None:
         raise RuntimeError(f"Failed to create level: {name}")
@@ -37,7 +37,7 @@ async def ensure_term_id(name: str) -> int:
     _id = await _get_id_by_name("terms", name)
     if _id is not None:
         return _id
-    await _db.db.insert_term(name)
+    await _db.insert_term(name)
     _id = await _get_id_by_name("terms", name)
     if _id is None:
         raise RuntimeError(f"Failed to create term: {name}")
@@ -50,14 +50,14 @@ async def add_subjects(level_name: str, term_name: str, pairs: list[tuple[str, s
     for code, name in pairs:
         if code.strip() == "---":
             continue
-        await _db.db.insert_subject(code, name, level_id, term_id)
+        await _db.insert_subject(code, name, level_id, term_id)
 
 async def _subject_id(level_name: str, term_name: str, subject_name: str) -> int:
-    level_id = await _db.db.get_level_id_by_name(level_name)
-    term_id = await _db.db.get_term_id_by_name(term_name)
+    level_id = await _db.get_level_id_by_name(level_name)
+    term_id = await _db.get_term_id_by_name(term_name)
     if not (level_id and term_id):
         raise RuntimeError(f"Level/Term not found: {level_name} / {term_name}")
-    sid = await _db.db.get_subject_id_by_name(level_id, term_id, subject_name)
+    sid = await _db.get_subject_id_by_name(level_id, term_id, subject_name)
     if not sid:
         raise RuntimeError(f"Subject not found: {subject_name} ({level_name}/{term_name})")
     return sid
