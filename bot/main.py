@@ -13,7 +13,6 @@ from telegram.ext import (
     MessageHandler,
     filters,
     ContextTypes,
-    idle,
 )
 
 from .config import BOT_TOKEN
@@ -154,7 +153,7 @@ async def main() -> None:
         async with app:
             await app.start()
             await app.updater.start_polling()
-            await idle()
+        
 
 
 
